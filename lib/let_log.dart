@@ -68,6 +68,10 @@ class _Config {
 }
 
 class Logger extends StatelessWidget {
+  final List<Widget> actions;
+
+  const Logger({this.actions = const []}) : super();
+
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
@@ -81,6 +85,7 @@ class Logger extends StatelessWidget {
             ],
           ),
           elevation: 0,
+          actions: actions,
         ),
         body: const TabBarView(
           children: [
