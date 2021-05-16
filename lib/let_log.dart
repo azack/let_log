@@ -1,8 +1,10 @@
 library let_log;
 
 import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+
 part 'log_widget.dart';
 part 'net_widget.dart';
 
@@ -93,6 +95,17 @@ class Logger extends StatelessWidget {
   static bool enabled = true;
   static _Config config = _Config();
 
+  static String export() {
+    return _Log.list.map((item) {
+      String result =
+          "${item.tabName} ${item.message} (${item.start.hour}:${item.start.minute}:${item.start.second}:${item.start.millisecond})";
+      if (item.detail != null) {
+        result += "\nDetail: ${item.detail}";
+      }
+      return result;
+    }).join("\n");
+  }
+
   /// Logging
   static void log(Object message, [Object detail]) {
     if (enabled) _Log.add(_Type.log, message, detail);
@@ -131,15 +144,13 @@ class Logger extends StatelessWidget {
   }
 
   /// Recording network information
-  static void net(String api,
-      {String type = "Http", int status = 100, Object data}) {
+  static void net(String api, {String type = "Http", int status = 100, Object data}) {
     assert(api != null);
     if (enabled) _Net.request(api, type, status, data);
   }
 
   /// End of record network information, with statistics on duration and size.
-  static void endNet(String api,
-      {int status = 200, Object data, Object headers, String type}) {
+  static void endNet(String api, {int status = 200, Object data, Object headers, String type}) {
     assert(api != null);
     if (enabled) _Net.response(api, status, data, headers, type);
   }
@@ -166,8 +177,7 @@ class _Log {
 
   bool contains(String keyword) {
     if (keyword.isEmpty) return true;
-    return message != null && message.contains(keyword) ||
-        detail != null && detail.contains(keyword);
+    return message != null && message.contains(keyword) || detail != null && detail.contains(keyword);
   }
 
   @override
@@ -284,9 +294,7 @@ class _Net extends ChangeNotifier {
 
   bool contains(String keyword) {
     if (keyword.isEmpty) return true;
-    return api.contains(keyword) ||
-        req != null && req.contains(keyword) ||
-        res != null && res.contains(keyword);
+    return api.contains(keyword) || req != null && req.contains(keyword) || res != null && res.contains(keyword);
   }
 
   @override
@@ -329,8 +337,7 @@ class _Net extends ChangeNotifier {
     }
   }
 
-  static void response(
-      String api, int status, Object data, Object headers, String type) {
+  static void response(String api, int status, Object data, Object headers, String type) {
     _Net net = _map[api];
     if (net != null) {
       _map.remove(net);
