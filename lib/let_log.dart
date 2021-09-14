@@ -133,13 +133,11 @@ class Logger extends StatelessWidget {
 
   /// Start recording time
   static void time(Object key) {
-    assert(key != null);
     if (enabled) _Log.time(key);
   }
 
   /// End of record time
   static void endTime(Object key) {
-    assert(key != null);
     if (enabled) _Log.endTime(key);
   }
 
@@ -150,13 +148,11 @@ class Logger extends StatelessWidget {
 
   /// Recording network information
   static void net(String api, {String type = "Http", int status = 100, Object? data}) {
-    assert(api != null);
     if (enabled) _Net.request(api, type, status, data);
   }
 
   /// End of record network information, with statistics on duration and size.
   static void endNet(String api, {int status = 200, Object? data, Object? headers, String? type}) {
-    assert(api != null);
     if (enabled) _Net.response(api, status, data, headers, type);
   }
 }
@@ -203,7 +199,7 @@ class _Log {
   static void add(_Type type, Object value, Object? detail) {
     final log = _Log(
       type: type,
-      message: value?.toString(),
+      message: value.toString(),
       detail: detail?.toString(),
       start: DateTime.now(),
     );
@@ -324,7 +320,7 @@ class _Net extends ChangeNotifier {
     );
     list.add(net);
     _map[api] = net;
-    if (type != null && type != "" && !types.contains(type)) {
+    if (type != "" && !types.contains(type)) {
       types.add(type);
       typeLength.value++;
     }
@@ -332,7 +328,7 @@ class _Net extends ChangeNotifier {
     length.value++;
     if (Logger.config.printNet) {
       debugPrint(
-          "${_printNames[4]} ${type == null ? '' : '$type: '}${net.api}${net.req == null ? '' : '\nData: ${net.req}'}\n--------------------------------");
+          "${_printNames[4]} ${'$type: '}${net.api}${net.req == null ? '' : '\nData: ${net.req}'}\n--------------------------------");
     }
   }
 
