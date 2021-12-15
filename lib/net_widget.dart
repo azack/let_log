@@ -43,13 +43,14 @@ class _NetWidgetState extends State<NetWidget> {
             },
           ),
           Expanded(
-            child: ValueListenableBuilder<int>(
-              valueListenable: _Net.length,
-              builder: (context, value, child) {
+            child: StreamBuilder<int>(
+              stream: _Net.logStream.stream,
+              builder: (context, snapshot) {
                 List<_Net> logs = _Net.list;
                 if (!_selectTypes.contains(_Net.all)) {
                   logs = _Net.list.where((test) {
-                    return _selectTypes.contains(test.type) && test.contains(_keyword);
+                    return _selectTypes.contains(test.type) &&
+                        test.contains(_keyword);
                   }).toList();
                 } else if (_keyword.isNotEmpty) {
                   logs = _Net.list.where((test) {
@@ -60,7 +61,9 @@ class _NetWidgetState extends State<NetWidget> {
                 final len = logs.length;
                 return ListView.separated(
                   itemBuilder: (context, index) {
-                    final item = Logger.config.reverse ? logs[len - index - 1] : logs[index];
+                    final item = Logger.config.reverse
+                        ? logs[len - index - 1]
+                        : logs[index];
                     return _buildItem(item, context);
                   },
                   itemCount: len,
@@ -249,7 +252,9 @@ class _NetWidgetState extends State<NetWidget> {
           selectedColor: const Color(0xFFCBE2F6),
           selected: _selectTypes.contains(f),
           onSelected: (value) {
-            _selectTypes.contains(f) ? _selectTypes.remove(f) : _selectTypes.add(f);
+            _selectTypes.contains(f)
+                ? _selectTypes.remove(f)
+                : _selectTypes.add(f);
             setState(() {});
           },
         ),
@@ -258,7 +263,8 @@ class _NetWidgetState extends State<NetWidget> {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 5, 0, 5),
       child: AnimatedCrossFade(
-        crossFadeState: _showSearch ? CrossFadeState.showSecond : CrossFadeState.showFirst,
+        crossFadeState:
+            _showSearch ? CrossFadeState.showSecond : CrossFadeState.showFirst,
         duration: const Duration(milliseconds: 300),
         firstChild: Row(
           children: [
@@ -273,7 +279,9 @@ class _NetWidgetState extends State<NetWidget> {
               onPressed: _Net.clear,
             ),
             IconButton(
-              icon: _keyword.isEmpty ? const Icon(Icons.search) : const Icon(Icons.filter_1),
+              icon: _keyword.isEmpty
+                  ? const Icon(Icons.search)
+                  : const Icon(Icons.filter_1),
               onPressed: () {
                 _showSearch = true;
                 setState(() {});

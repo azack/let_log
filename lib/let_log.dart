@@ -1,5 +1,6 @@
 library let_log;
 
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -121,7 +122,7 @@ class Logger extends StatelessWidget {
     if (enabled) _Log.add(_Type.debug, message, detail);
   }
 
-  /// Record warnning information
+  /// Record warning information
   static void warn(Object message, [Object? detail]) {
     if (enabled) _Log.add(_Type.warn, message, detail);
   }
@@ -147,19 +148,22 @@ class Logger extends StatelessWidget {
   }
 
   /// Recording network information
-  static void net(String api, {String type = "Http", int status = 100, Object? data}) {
+  static void net(String api,
+      {String type = "Http", int status = 100, Object? data}) {
     if (enabled) _Net.request(api, type, status, data);
   }
 
   /// End of record network information, with statistics on duration and size.
-  static void endNet(String api, {int status = 200, Object? data, Object? headers, String? type}) {
+  static void endNet(String api,
+      {int status = 200, Object? data, Object? headers, String? type}) {
     if (enabled) _Net.response(api, status, data, headers, type);
   }
 }
 
 class _Log {
   static final List<_Log> list = [];
-  static final ValueNotifier<int> length = ValueNotifier(0);
+  static final StreamController<int> logStream = StreamController.broadcast();
+
   static final Map<Object, Object> _map = {};
 
   final _Type? type;
@@ -178,7 +182,8 @@ class _Log {
 
   bool contains(String keyword) {
     if (keyword.isEmpty) return true;
-    return message != null && message!.contains(keyword) || detail != null && detail!.contains(keyword);
+    return message != null && message!.contains(keyword) ||
+        detail != null && detail!.contains(keyword);
   }
 
   @override
@@ -205,7 +210,8 @@ class _Log {
     );
     list.add(log);
     _clearWhenTooMuch();
-    length.value++;
+    logStream.add(list.length);
+
     if (Logger.config.printLog) {
       debugPrint(
           "${log.typeName} ${log.message}${log.detail == null ? '' : '\n${log.detail}'}\n--------------------------------");
@@ -234,14 +240,14 @@ class _Log {
   static void clear() {
     list.clear();
     _map.clear();
-    length.value = 0;
+    logStream.add(list.length);
   }
 }
 
 class _Net extends ChangeNotifier {
   static const all = "All";
   static final List<_Net> list = [];
-  static final ValueNotifier<int> length = ValueNotifier(0);
+  static final StreamController<int> logStream = StreamController.broadcast();
   static final Map<String, _Net> _map = {};
   static final List<String> types = [all];
   static final ValueNotifier<int> typeLength = ValueNotifier(1);
@@ -295,7 +301,9 @@ class _Net extends ChangeNotifier {
 
   bool contains(String keyword) {
     if (keyword.isEmpty) return true;
-    return api!.contains(keyword) || req != null && req!.contains(keyword) || res != null && res!.contains(keyword);
+    return api!.contains(keyword) ||
+        req != null && req!.contains(keyword) ||
+        res != null && res!.contains(keyword);
   }
 
   @override
@@ -325,7 +333,7 @@ class _Net extends ChangeNotifier {
       typeLength.value++;
     }
     _clearWhenTooMuch();
-    length.value++;
+    logStream.add(list.length);
     if (Logger.config.printNet) {
       debugPrint(
           "${_printNames[4]} ${'$type: '}${net.api}${net.req == null ? '' : '\nData: ${net.req}'}\n--------------------------------");
@@ -338,7 +346,8 @@ class _Net extends ChangeNotifier {
     }
   }
 
-  static void response(String api, int status, Object? data, Object? headers, String? type) {
+  static void response(
+      String api, int status, Object? data, Object? headers, String? type) {
     _Net? net = _map[api];
     if (net != null) {
       _map.remove(net);
@@ -346,7 +355,7 @@ class _Net extends ChangeNotifier {
       net.status = status;
       net.headers = headers?.toString();
       net.res = data?.toString();
-      length.notifyListeners();
+      logStream.add(list.length);
     } else {
       net = _Net(api: api, start: DateTime.now(), type: type);
       net.status = status;
@@ -354,7 +363,7 @@ class _Net extends ChangeNotifier {
       net.res = data?.toString();
       list.add(net);
       _clearWhenTooMuch();
-      length.value++;
+      logStream.add(list.length);
     }
     if (Logger.config.printNet) {
       debugPrint(
@@ -365,6 +374,6 @@ class _Net extends ChangeNotifier {
   static void clear() {
     list.clear();
     _map.clear();
-    length.value = 0;
+    logStream.add(list.length);
   }
 }

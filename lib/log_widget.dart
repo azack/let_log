@@ -38,9 +38,9 @@ class _LogWidgetState extends State<LogWidget> {
         children: <Widget>[
           _buildTools(),
           Expanded(
-            child: ValueListenableBuilder<int>(
-              valueListenable: _Log.length,
-              builder: (context, value, child) {
+            child: StreamBuilder<int>(
+              stream: _Log.logStream.stream,
+              builder: (context, snapshot) {
                 List<_Log> logs = _Log.list;
                 if (_selectTypes.length < 4 || _keyword.isNotEmpty) {
                   logs = _Log.list.where((test) {
