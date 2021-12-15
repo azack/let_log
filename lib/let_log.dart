@@ -32,12 +32,12 @@ class _Config {
 
   /// Set the names in ide print.
   void setPrintNames({
-    String log,
-    String debug,
-    String warn,
-    String error,
-    String request,
-    String response,
+    String? log,
+    String? debug,
+    String? warn,
+    String? error,
+    String? request,
+    String? response,
   }) {
     _printNames = [
       log ?? "[Log]",
@@ -51,12 +51,12 @@ class _Config {
 
   /// Set the names in the app.
   void setTabNames({
-    String log,
-    String debug,
-    String warn,
-    String error,
-    String request,
-    String response,
+    String? log,
+    String? debug,
+    String? warn,
+    String? error,
+    String? request,
+    String? response,
   }) {
     _tabNames = [
       log ?? "[Log]",
@@ -103,7 +103,7 @@ class Logger extends StatelessWidget {
   static String export() {
     return _Log.list.map((item) {
       String result =
-          "${item.tabName} ${item.message} (${item.start.hour}:${item.start.minute}:${item.start.second}:${item.start.millisecond})";
+          "${item.tabName} ${item.message} (${item.start!.hour}:${item.start!.minute}:${item.start!.second}:${item.start!.millisecond})";
       if (item.detail != null) {
         result += "\nDetail: ${item.detail}";
       }
@@ -112,34 +112,32 @@ class Logger extends StatelessWidget {
   }
 
   /// Logging
-  static void log(Object message, [Object detail]) {
+  static void log(Object message, [Object? detail]) {
     if (enabled) _Log.add(_Type.log, message, detail);
   }
 
   /// Record debug information
-  static void debug(Object message, [Object detail]) {
+  static void debug(Object message, [Object? detail]) {
     if (enabled) _Log.add(_Type.debug, message, detail);
   }
 
   /// Record warnning information
-  static void warn(Object message, [Object detail]) {
+  static void warn(Object message, [Object? detail]) {
     if (enabled) _Log.add(_Type.warn, message, detail);
   }
 
   /// Record error information
-  static void error(Object message, [Object detail]) {
+  static void error(Object message, [Object? detail]) {
     if (enabled) _Log.add(_Type.error, message, detail);
   }
 
   /// Start recording time
   static void time(Object key) {
-    assert(key != null);
     if (enabled) _Log.time(key);
   }
 
   /// End of record time
   static void endTime(Object key) {
-    assert(key != null);
     if (enabled) _Log.endTime(key);
   }
 
@@ -149,14 +147,12 @@ class Logger extends StatelessWidget {
   }
 
   /// Recording network information
-  static void net(String api, {String type = "Http", int status = 100, Object data}) {
-    assert(api != null);
+  static void net(String api, {String type = "Http", int status = 100, Object? data}) {
     if (enabled) _Net.request(api, type, status, data);
   }
 
   /// End of record network information, with statistics on duration and size.
-  static void endNet(String api, {int status = 200, Object data, Object headers, String type}) {
-    assert(api != null);
+  static void endNet(String api, {int status = 200, Object? data, Object? headers, String? type}) {
     if (enabled) _Net.response(api, status, data, headers, type);
   }
 }
@@ -166,23 +162,23 @@ class _Log {
   static final ValueNotifier<int> length = ValueNotifier(0);
   static final Map<Object, Object> _map = {};
 
-  final _Type type;
-  final String message;
-  final String detail;
-  final DateTime start;
+  final _Type? type;
+  final String? message;
+  final String? detail;
+  final DateTime? start;
   const _Log({this.type, this.message, this.detail, this.start});
 
   String get typeName {
-    return _printNames[type.index];
+    return _printNames[type!.index];
   }
 
   String get tabName {
-    return _tabNames[type.index];
+    return _tabNames[type!.index];
   }
 
   bool contains(String keyword) {
     if (keyword.isEmpty) return true;
-    return message != null && message.contains(keyword) || detail != null && detail.contains(keyword);
+    return message != null && message!.contains(keyword) || detail != null && detail!.contains(keyword);
   }
 
   @override
@@ -190,7 +186,7 @@ class _Log {
     final StringBuffer sb = StringBuffer();
     sb.writeln("Message: $message");
     sb.writeln("Time: $start");
-    if (detail != null && detail.length > 100) {
+    if (detail != null && detail!.length > 100) {
       sb.writeln("Detail: ");
       sb.writeln(detail);
     } else {
@@ -200,10 +196,10 @@ class _Log {
     return sb.toString();
   }
 
-  static void add(_Type type, Object value, Object detail) {
+  static void add(_Type type, Object value, Object? detail) {
     final log = _Log(
       type: type,
-      message: value?.toString(),
+      message: value.toString(),
       detail: detail?.toString(),
       start: DateTime.now(),
     );
@@ -230,7 +226,7 @@ class _Log {
     final data = _map[key];
     if (data != null) {
       _map.remove(key);
-      final spend = DateTime.now().difference(data).inMilliseconds;
+      final spend = DateTime.now().difference(data as DateTime).inMilliseconds;
       _Log.add(_Type.log, '$key: $spend ms', null);
     }
   }
@@ -250,14 +246,14 @@ class _Net extends ChangeNotifier {
   static final List<String> types = [all];
   static final ValueNotifier<int> typeLength = ValueNotifier(1);
 
-  final String api;
-  final String req;
-  final DateTime start;
-  String type;
+  final String? api;
+  final String? req;
+  final DateTime? start;
+  String? type;
   int status = 100;
   int spend = 0;
-  String res;
-  String headers;
+  String? res;
+  String? headers;
   bool showDetail = false;
   int _reqSize = -1;
   int _resSize = -1;
@@ -275,9 +271,9 @@ class _Net extends ChangeNotifier {
 
   int getReqSize() {
     if (_reqSize > -1) return _reqSize;
-    if (req != null && req.isNotEmpty) {
+    if (req != null && req!.isNotEmpty) {
       try {
-        return _reqSize = utf8.encode(req).length;
+        return _reqSize = utf8.encode(req!).length;
       } catch (e) {
         // print(e);
       }
@@ -287,9 +283,9 @@ class _Net extends ChangeNotifier {
 
   int getResSize() {
     if (_resSize > -1) return _resSize;
-    if (res != null && res.isNotEmpty) {
+    if (res != null && res!.isNotEmpty) {
       try {
-        return _resSize = utf8.encode(res).length;
+        return _resSize = utf8.encode(res!).length;
       } catch (e) {
         // print(e);
       }
@@ -299,7 +295,7 @@ class _Net extends ChangeNotifier {
 
   bool contains(String keyword) {
     if (keyword.isEmpty) return true;
-    return api.contains(keyword) || req != null && req.contains(keyword) || res != null && res.contains(keyword);
+    return api!.contains(keyword) || req != null && req!.contains(keyword) || res != null && res!.contains(keyword);
   }
 
   @override
@@ -314,7 +310,7 @@ class _Net extends ChangeNotifier {
     return sb.toString();
   }
 
-  static void request(String api, String type, int status, Object data) {
+  static void request(String api, String type, int status, Object? data) {
     final net = _Net(
       api: api,
       type: type,
@@ -324,7 +320,7 @@ class _Net extends ChangeNotifier {
     );
     list.add(net);
     _map[api] = net;
-    if (type != null && type != "" && !types.contains(type)) {
+    if (type != "" && !types.contains(type)) {
       types.add(type);
       typeLength.value++;
     }
@@ -332,7 +328,7 @@ class _Net extends ChangeNotifier {
     length.value++;
     if (Logger.config.printNet) {
       debugPrint(
-          "${_printNames[4]} ${type == null ? '' : '$type: '}${net.api}${net.req == null ? '' : '\nData: ${net.req}'}\n--------------------------------");
+          "${_printNames[4]} ${'$type: '}${net.api}${net.req == null ? '' : '\nData: ${net.req}'}\n--------------------------------");
     }
   }
 
@@ -342,11 +338,11 @@ class _Net extends ChangeNotifier {
     }
   }
 
-  static void response(String api, int status, Object data, Object headers, String type) {
-    _Net net = _map[api];
+  static void response(String api, int status, Object? data, Object? headers, String? type) {
+    _Net? net = _map[api];
     if (net != null) {
       _map.remove(net);
-      net.spend = DateTime.now().difference(net.start).inMilliseconds;
+      net.spend = DateTime.now().difference(net.start!).inMilliseconds;
       net.status = status;
       net.headers = headers?.toString();
       net.res = data?.toString();
