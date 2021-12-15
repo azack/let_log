@@ -50,23 +50,27 @@ class _LogWidgetState extends State<LogWidget> {
                 }
 
                 final len = logs.length;
-                return ListView.separated(
-                  itemBuilder: (context, index) {
-                    final item = Logger.config.reverse
-                        ? logs[len - index - 1]
-                        : logs[index];
-                    final color = _getColor(item.type, context);
-                    return _buildItem(item, color);
-                  },
-                  itemCount: len,
+                return Scrollbar(
                   controller: _scrollController,
-                  separatorBuilder: (context, index) {
-                    return const Divider(
-                      height: 10,
-                      thickness: 0.5,
-                      color: Color(0xFFE0E0E0),
-                    );
-                  },
+                  isAlwaysShown: true,
+                  child: ListView.separated(
+                    itemBuilder: (context, index) {
+                      final item = Logger.config.reverse
+                          ? logs[len - index - 1]
+                          : logs[index];
+                      final color = _getColor(item.type, context);
+                      return _buildItem(item, color);
+                    },
+                    itemCount: len,
+                    controller: _scrollController,
+                    separatorBuilder: (context, index) {
+                      return const Divider(
+                        height: 10,
+                        thickness: 0.5,
+                        color: Color(0xFFE0E0E0),
+                      );
+                    },
+                  ),
                 );
               },
             ),
